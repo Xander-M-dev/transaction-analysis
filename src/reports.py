@@ -62,7 +62,9 @@ def spending_by_category(transactions: pd.DataFrame, category: str, date: Option
 
         # Преобразуем даты если нужно
         if not pd.api.types.is_datetime64_any_dtype(transactions["Дата операции"]):
-            transactions["Дата операции"] = pd.to_datetime(transactions["Дата операции"], errors="coerce")
+            transactions["Дата операции"] = pd.to_datetime(
+                transactions["Дата операции"], errors="coerce", dayfirst=True
+            )
 
         # Фильтруем по дате и категории
         mask = (
