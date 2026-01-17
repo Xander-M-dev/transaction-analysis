@@ -1,4 +1,5 @@
 """Тесты для модуля views."""
+import json
 from unittest.mock import MagicMock, patch
 
 from src.views import home_page
@@ -13,12 +14,12 @@ def test_home_page_success(mock_stocks: MagicMock, mock_currencies: MagicMock) -
     mock_stocks.return_value = [{"stock": "AAPL", "price": 150.0}]
 
     result = home_page("2023-10-20 15:30:00")
-
-    assert "greeting" in result
-    assert result["greeting"] == "Добрый день"
-    assert "cards" in result
-    assert "currency_rates" in result
-    assert "stock_prices" in result
+    conv_json = json.loads(result)
+    assert "greeting" in conv_json
+    assert conv_json["greeting"] == "Добрый день"
+    assert "cards" in conv_json
+    assert "currency_rates" in conv_json
+    assert "stock_prices" in conv_json
 
 
 def test_home_page_invalid_date() -> None:

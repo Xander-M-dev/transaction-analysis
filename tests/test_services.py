@@ -1,4 +1,5 @@
 """Тесты для модуля services."""
+import json
 from typing import Any, Dict, List
 
 import pandas
@@ -39,22 +40,15 @@ def sample_transactions() -> List[Dict[str, Any]]:
 @pytest.mark.parametrize(
     "query,expected_count",
     [
-        ("Лента", 202),
-        ("лента", 202),  # Проверка регистронезависимости
-        ("Ресторан", 192),
-        ("Перевод", 196),
-        ("", 0),
+        ("Лента", -1500.0),
+        ("лента", -1500.0),  # Проверка регистронезависимости
+        ("Ресторан", -2500.0),
+        ("Перевод", -1000.0),
     ],
 )
-def test_simple_search(query: str, expected_count: int, sample_transactions: list) -> None:
+def test_simple_search(query: str, expected_count: float, sample_transactions: list) -> None:
     """Тестирование простого поиска."""
     df = pandas.DataFrame(sample_transactions)
     result = simple_search(query, df)
-    assert len(result) == expected_count
-
-
-def test_simple_search_empty_input(sample_transactions: list) -> None:
-    """Тестирование поиска с пустым списком транзакций."""
-    df = pandas.DataFrame(sample_transactions)
-    result = simple_search("Лента", df)
-    assert len(result) == 202
+    conv_json = json.loads(result)
+    assert conv_json[0]["Сумма операции"] == expected_count

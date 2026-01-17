@@ -1,4 +1,5 @@
 """Функции для генерации JSON-ответов для веб-страниц."""
+import json
 import logging
 from datetime import datetime
 
@@ -7,7 +8,7 @@ from src.utils import get_currency_rates, get_greeting_by_time, get_stock_prices
 logger = logging.getLogger(__name__)
 
 
-def home_page(date_time_str: str) -> dict:
+def home_page(date_time_str: str) -> str:
     """Генерирует JSON-ответ для главной страницы."""
     try:
         # Преобразуем строку в datetime
@@ -38,18 +39,22 @@ def home_page(date_time_str: str) -> dict:
             },
             {"date": "20.12.2021", "amount": 829.00, "category": "Супермаркеты", "description": "Лента"},
         ]
-
-        return {
-            "greeting": greeting,
-            "cards": cards,
-            "top_transactions": top_transactions[:5],
-            "currency_rates": currency_rates,
-            "stock_prices": stock_prices,
-        }
+        result = json.dumps(
+            {
+                "greeting": greeting,
+                "cards": cards,
+                "top_transactions": top_transactions[:5],
+                "currency_rates": currency_rates,
+                "stock_prices": stock_prices,
+            },
+            ensure_ascii=False,
+            indent=2,
+        )
+        return result
 
     except ValueError as e:
         logger.error(f"Неверный формат даты: {e}")
-        return {"error": "Неверный формат даты"}
+        return json.dumps({"error": "Неверный формат даты"}, ensure_ascii=False)
     except Exception as e:
         logger.error(f"Ошибка в home_page: {e}")
-        return {"error": "Внутренняя ошибка сервера"}
+        return json.dumps({"error": "Внутренняя ошибка сервера"}, ensure_ascii=False)
