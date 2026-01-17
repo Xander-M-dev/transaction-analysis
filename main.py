@@ -30,16 +30,14 @@ def main() -> None:
 
         # 3. Простой поиск
         print("\n3. Простой поиск...")
-        transactions_list = df.to_dict("records")
-        search_results = simple_search("Лента", transactions_list)
+        search_results = simple_search("Лента", df)
         print(f"Найдено {len(search_results)} транзакций:")
-        for result in search_results:
-            print(f"  - {result.get('Описание')}: {result.get('Сумма операции')} руб.")
+        print(search_results)
 
         # 4. Отчет по тратам по категории
         print("\n4. Генерация отчета по тратам...")
         if not df.empty:
-            report = spending_by_category(df, "Супермаркеты", "2023-10-20")
+            report = spending_by_category(df, "Супермаркеты", "2021-12-20")
             print(json.dumps(report, ensure_ascii=False, indent=2))
 
         print("\n" + "=" * 50)

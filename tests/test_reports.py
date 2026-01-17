@@ -1,4 +1,5 @@
 """Тесты для модуля reports."""
+import json
 
 import pandas as pd
 import pytest
@@ -22,11 +23,12 @@ def sample_dataframe() -> DataFrame:
 def test_spending_by_category(sample_dataframe: DataFrame) -> None:
     """Тестирование расчета трат по категории."""
     result = spending_by_category(sample_dataframe, "Супермаркеты", "2023-10-20")
+    conv_json = json.loads(result)
 
-    assert "category" in result
-    assert result["category"] == "Супермаркеты"
-    assert "total_spent" in result
-    assert result["total_spent"] > 0
+    assert "category" in conv_json
+    assert conv_json["category"] == "Супермаркеты"
+    assert "total_spent" in conv_json
+    assert conv_json["total_spent"] > 0
 
 
 def test_spending_by_category_empty() -> None:

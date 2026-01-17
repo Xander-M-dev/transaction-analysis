@@ -3,7 +3,7 @@ import json
 import logging
 from datetime import datetime, timedelta
 from functools import wraps
-from typing import Any, Callable, Dict, Optional
+from typing import Any, Callable, Optional
 
 import pandas as pd
 
@@ -28,7 +28,7 @@ def report_decorator(func: Callable | None = None, *, filename: str | None = Non
             # Сохраняем результат в файл
             try:
                 with open(f"reports/{file_name}", "w", encoding="utf-8") as file:
-                    json.dump(result, file, ensure_ascii=False, indent=2)
+                    file.write(result + "\n")
                 logger.info(f"Отчет сохранен в reports/{file_name}")
             except Exception as e:
                 logger.error(f"Ошибка при сохранении отчета: {e}")
@@ -44,7 +44,7 @@ def report_decorator(func: Callable | None = None, *, filename: str | None = Non
 
 
 @report_decorator
-def spending_by_category(transactions: pd.DataFrame, category: str, date: Optional[str] = None) -> Dict[str, Any]:
+def spending_by_category(transactions: pd.DataFrame, category: str, date: Optional[str] = None) -> str:
     """Рассчитывает траты по категории за последние три месяца."""
     try:
         # Определяем дату отсчета
@@ -58,11 +58,13 @@ def spending_by_category(transactions: pd.DataFrame, category: str, date: Option
 
         # Фильтруем транзакции
         if "Дата операции" not in transactions.columns:
-            return {"error": "В данных отсутствует колонка 'Дата операции'"}
+            return json.dumps({"error": "В данных отсутствует колонка 'Дата операции'"}, ensure_ascii=False)
 
         # Преобразуем даты если нужно
         if not pd.api.types.is_datetime64_any_dtype(transactions["Дата операции"]):
-            transactions["Дата операции"] = pd.to_datetime(transactions["Дата операции"], errors="coerce")
+            transactions["Дата операции"] = pd.to_datetime(
+                transactions["Дата операции"], errors="coerce", dayfirst=True
+            )
 
         # Фильтруем по дате и категории
         mask = (
@@ -74,25 +76,31 @@ def spending_by_category(transactions: pd.DataFrame, category: str, date: Option
         filtered = transactions[mask]
 
         if filtered.empty:
-            return {
-                "category": category,
-                "period": f"{start_date.strftime('%Y-%m-%d')} - {target_date.strftime('%Y-%m-%d')}",
-                "total_spent": 0,
-                "transactions_count": 0,
-                "message": "Транзакции не найдены",
-            }
+            return json.dumps(
+                {
+                    "category": category,
+                    "period": f"{start_date.strftime('%Y-%m-%d')} - {target_date.strftime('%Y-%m-%d')}",
+                    "total_spent": 0,
+                    "transactions_count": 0,
+                    "message": "Транзакции не найдены",
+                },
+                ensure_ascii=False,
+            )
 
         # Суммируем траты (отрицательные суммы)
         total_spent = filtered[filtered["Сумма операции"] < 0]["Сумма операции"].abs().sum()
 
-        return {
-            "category": category,
-            "period": f"{start_date.strftime('%Y-%m-%d')} - {target_date.strftime('%Y-%m-%d')}",
-            "total_spent": round(total_spent, 2),
-            "transactions_count": len(filtered),
-            "average_spent": round(total_spent / len(filtered), 2) if len(filtered) > 0 else 0,
-        }
+        return json.dumps(
+            {
+                "category": category,
+                "period": f"{start_date.strftime('%Y-%m-%d')} - {target_date.strftime('%Y-%m-%d')}",
+                "total_spent": round(total_spent, 2),
+                "transactions_count": len(filtered),
+                "average_spent": round(total_spent / len(filtered), 2) if len(filtered) > 0 else 0,
+            },
+            ensure_ascii=False,
+        )
 
     except Exception as e:
         logger.error(f"Ошибка в spending_by_category: {e}")
-        return {"error": f"Ошибка обработки: {str(e)}"}
+        return json.dumps({"error": f"Ошибка обработки: {str(e)}"}, ensure_ascii=False)

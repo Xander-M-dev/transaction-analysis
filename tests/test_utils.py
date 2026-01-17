@@ -1,5 +1,4 @@
 """Тесты для модуля utils."""
-import json
 from datetime import datetime
 from unittest.mock import MagicMock, mock_open, patch
 
